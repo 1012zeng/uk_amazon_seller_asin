@@ -1,5 +1,5 @@
 source:
-  path: "../../UK店铺库-中国地址.xlsx"
+  path: "input/UK店铺库-中国地址.xlsx"
   sheet: "卖家数据"
   limit: 1
   format: "seller_ids_b"

@@ -24,7 +24,7 @@ Copy-Item config/amazon-uk.example.yaml config/amazon-uk.local.yaml
 Copy-Item config/amazon-uk-canary.example.yaml config/amazon-uk-canary.local.yaml
 ```
 
-正式配置保持 `source.limit: 0`；小样配置单独设为 1，不能修改正式配置后再忘记恢复。运行前确认共享代理控制器路径、SellerSprite 服务和浏览器依赖。
+复制后在两个 local 文件中填写本机源 Excel 路径和共享代理控制器路径；正式配置保持 `source.limit: 0`，小样配置单独设为 1，不能修改正式配置后再忘记恢复。运行前确认 SellerSprite 服务和浏览器依赖。
 
 ```powershell
 pnpm install
