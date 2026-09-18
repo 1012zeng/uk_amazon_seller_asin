@@ -1,0 +1,2 @@
+# uk_amazon_seller_asin
+英国站亚马逊通过店铺获取ASIN
