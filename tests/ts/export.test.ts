@@ -12,10 +12,11 @@ function sheetAsins(sheet: ExcelJS.Worksheet): string[] {
 }
 function addProduct(store: ReturnType<typeof runFixture>["store"], asin: string, age: number, reviewCount: number | null, rating: number | null): void {
   const occurrenceId = (store.db.prepare("SELECT occurrence_id FROM asin_candidates WHERE asin=?").get(asin) as { occurrence_id: number }).occurrence_id;
-  store.db.prepare("UPDATE asin_candidates SET state='retained' WHERE asin=?").run(asin);
+  store.db.prepare("UPDATE asin_candidates SET state='retained',daily_sales_3_plus='yes',sales_7d_state='retained',sales_7d_result='yes',sales_7d_complete=1 WHERE asin=?").run(asin);
   store.db.prepare(`INSERT INTO cleaned_products(asin,seller_id,occurrence_id,site,product_url,store_name,store_url,unit_price_pence,date_first_available,review_count,rating,fulfillment,variation_count,title,category,brand,brand_url,created_at,updated_at)
     VALUES(?,'A123456789',?,'amazon.co.uk',?,'First','https://amazon.co.uk/s?me=A123456789',699,?,?,?,?,3,'Example','Home','Brand','https://example.invalid/brand','x','x')`)
     .run(asin, occurrenceId, `https://www.amazon.co.uk/dp/${asin}`, dateForAge(age), reviewCount, rating, "FBA");
+  store.db.prepare("UPDATE cleaned_products SET daily_sales_3_plus='yes' WHERE asin=?").run(asin);
 }
 
 describe("three-sheet export", () => {
@@ -64,6 +65,17 @@ describe("three-sheet export", () => {
     store.setStage("sales_7d", "completed");
     store.setStage("detail", "completed");
     await expect(writeExcelExport(store)).rejects.toThrow(`asin=${asin}, column=标题`);
+    store.close();
+  });
+
+  it("refuses a retained row without a completed yes sales decision", async () => {
+    const { store } = runFixture();
+    const [asin] = seedCandidates(store, 1);
+    addProduct(store, asin!, 0, 1, 4);
+    store.db.prepare("UPDATE cleaned_products SET daily_sales_3_plus=NULL WHERE asin=?").run(asin);
+    store.setStage("sales_7d", "completed");
+    store.setStage("detail", "completed");
+    await expect(writeExcelExport(store)).rejects.toThrow(/no completed yes sales-7d decision/);
     store.close();
   });
 });

@@ -91,6 +91,7 @@ export async function writeExcelExport(store: RunStore, exportedAt = new Date())
   if (store.source.stageStatus("detail") !== "completed") throw new Error("Export requires completed ASIN detail stage");
   if (!store.enrichments.isTerminal() || !store.sales.isTerminal() || !store.details.isTerminal()) throw new Error("Export refused because downstream tasks are not terminal");
   const rows = store.exports.rows();
+  if (rows.some((row) => row.daily_sales_3_plus !== "yes")) throw new Error("Export refused because a retained product has no completed yes sales-7d decision");
   if (rows.length > MAX_DATA_ROWS) throw new Error(`Excel row limit exceeded: ${rows.length} > ${MAX_DATA_ROWS}`);
   const config = store.getRunConfig();
   const exportDir = path.join(store.runDir, "exports");
