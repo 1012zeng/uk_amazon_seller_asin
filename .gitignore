@@ -3,3 +3,8 @@ output/
 coverage/
 *.log
 .gstack/
+
+config/*.local.yaml
+*.xlsx
+output/
+
