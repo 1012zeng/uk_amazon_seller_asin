@@ -14,7 +14,7 @@ function option(args: string[], name: string): string | undefined {
 async function main(): Promise<number> {
   const args = process.argv.slice(2);
   const resumeRunId = option(args, "--resume");
-  const configPath = option(args, "--config") ?? "config/amazon-uk.yaml";
+  const configPath = option(args, "--config") ?? "config/amazon-uk.local.yaml";
   if (resumeRunId && args.includes("--config")) throw new UsageError("Seller ID 流水线只能使用 --resume 或 --config，不能同时使用");
   return pipelineCommand(resumeRunId ? { resumeRunId } : { configPath });
 }

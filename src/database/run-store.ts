@@ -13,6 +13,7 @@ import { SourceRepository } from "./repositories/source-repository.js";
 import { SourceResolutionRepository } from "./repositories/source-resolution-repository.js";
 import { StoreRepository } from "./repositories/store-repository.js";
 import type { StoreCrawlRound, StorePageApplyResult, StorePageTask } from "./repositories/store-repository.js";
+import { BUSINESS_CONTRACT_VERSION, PROJECT_ID, runContractHash } from "../shared/contracts.js";
 
 export class RunStore {
   readonly database: RunDatabase;
@@ -51,12 +52,13 @@ export class RunStore {
   }
 
   assertResumeContract(): void {
-    const meta = this.source.getMeta() as { config_path: string; config_hash: string; source_path: string; source_hash: string; as_of_date: string; contract_hash: string };
+    const meta = this.source.getMeta() as { project_id: string; business_contract_version: string; config_path: string; config_hash: string; source_path: string; source_hash: string; as_of_date: string; contract_hash: string };
+    if (meta.project_id !== PROJECT_ID || meta.business_contract_version !== BUSINESS_CONTRACT_VERSION) throw new Error("拒绝续跑：任务项目或业务合同版本不匹配");
     const current = loadConfig(meta.config_path);
     if (current.configHash !== meta.config_hash) throw new Error("拒绝续跑：任务创建后的配置哈希已改变");
     const sourceHash = createHash("sha256").update(readFileSync(meta.source_path)).digest("hex");
     if (sourceHash !== meta.source_hash) throw new Error("拒绝续跑：源 Excel 的 SHA-256 已改变");
-    const contract = createHash("sha256").update(JSON.stringify({ schema: SCHEMA_VERSION, configHash: current.configHash, sourceHash, asOfDate: meta.as_of_date })).digest("hex");
+    const contract = createHash("sha256").update(runContractHash(SCHEMA_VERSION, current.configHash, sourceHash, meta.as_of_date)).digest("hex");
     if (contract !== meta.contract_hash) throw new Error("拒绝续跑：任务运行合同已改变");
   }
 
@@ -88,6 +90,9 @@ export class RunStore {
       WHEN 'import' THEN 1 WHEN 'source_resolution' THEN 2 WHEN 'stores' THEN 3 WHEN 'prefilter' THEN 4 WHEN 'history_filter' THEN 5 WHEN 'enrich' THEN 6 WHEN 'filter' THEN 7 WHEN 'sales_7d' THEN 8 WHEN 'detail' THEN 9 WHEN 'export' THEN 10 ELSE 99 END`).all();
     return {
       schemaVersion: this.database.schemaVersion,
+      projectId: meta.project_id,
+      businessContractVersion: meta.business_contract_version,
+      gitCommit: meta.git_commit,
       runId: meta.run_id,
       status: meta.status,
       currentStage: meta.current_stage,

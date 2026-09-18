@@ -157,10 +157,10 @@ export function chineseEventMessage(originalType: string, payload: EventPayload 
     case "prefilter_completed":
       return `商品初筛完成，共形成 ${number(payload, "uniqueCandidates")} 个唯一候选商品。`;
     case "prefilter_failed": return "商品初筛失败，数据库原始抓取记录未被删除。";
-    case "history_filter_skipped": return "按当前 ASIN 链接任务合同，已跳过历史数据库排除。";
+    case "history_filter_skipped": return "按当前 Seller ID 独立任务合同，已跳过历史数据库排除。";
     case "history_filter_completed":
       return `历史商品排除完成：命中 ${number(payload, "excluded")} 个，剩余 ${number(payload, "eligibleForMcp")} 个待补全。`;
-    case "history_filter_paused": return "历史数据库暂时不可用，流程已暂停，未绕过排除步骤。";
+    case "history_filter_paused": return "历史数据库旁路阶段异常，流程已暂停并保留当前进度。";
     case "mcp_batch_started":
       return `卖家精灵第 ${number(payload, "round")} 轮第 ${number(payload, "batchOrdinal")} 批开始，共 ${number(payload, "count")} 个商品。`;
     case "mcp_batch_completed":

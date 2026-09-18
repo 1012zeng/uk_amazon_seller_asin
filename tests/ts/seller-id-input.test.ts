@@ -36,4 +36,23 @@ describe("B-column seller ID input", () => {
     const file = await workbookFile([{ text: "Not a seller", hyperlink: "https://example.com/store" }]);
     await expect(readSellerIdsColumnB(file, "卖家数据", "https://www.amazon.co.uk", "A1F83G8C2ARO7P", 0)).rejects.toThrow(/第 2 行 B 列/);
   });
+
+  it("does not treat a row with another populated cell as a blank row", async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "seller-id-input-row-"));
+    const target = path.join(root, "source.xlsx");
+    const book = new ExcelJS.Workbook();
+    const sheet = book.addWorksheet("卖家数据");
+    sheet.getCell("B1").value = "卖家名称";
+    sheet.getCell("A2").value = "说明";
+    await book.xlsx.writeFile(target);
+    await expect(readSellerIdsColumnB(target, "卖家数据", "https://www.amazon.co.uk", "A1F83G8C2ARO7P", 0)).rejects.toThrow(/第 2 行 B 列/);
+  });
+
+  it("rejects non-HTTP(S) and preserves the first source row", async () => {
+    const file = await workbookFile([
+      { text: "Seller A", hyperlink: "ftp://www.amazon.co.uk/s?me=A2T5LHS3VM5VWI" },
+      "A2T5LHS3VM5VWI",
+    ]);
+    await expect(readSellerIdsColumnB(file, "卖家数据", "https://www.amazon.co.uk", "A1F83G8C2ARO7P", 0)).rejects.toThrow(/第 2 行 B 列/);
+  });
 });

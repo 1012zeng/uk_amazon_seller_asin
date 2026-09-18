@@ -7,6 +7,10 @@ describe("schema v15 repositories", () => {
   it("creates an auditable candidate snapshot and keeps occurrence records immutable", () => {
     const { store } = fixture();
     expect(store.db.pragma("user_version", { simple: true })).toBe(15);
+    expect(store.db.prepare("SELECT project_id,business_contract_version,git_commit FROM run_meta").get()).toMatchObject({
+      project_id: "uk_amazon_seller_asin",
+      business_contract_version: "seller-ids-b-v1",
+    });
     expect((store.db.pragma("table_info(cleaned_products)") as Array<{ name: string }>).map((row) => row.name)).toEqual(expect.arrayContaining(["title", "category", "features_json", "overviews", "brand", "brand_url"]));
     expect((store.db.pragma("table_info(asin_candidates)") as Array<{ name: string }>).map((row) => row.name)).toEqual(expect.arrayContaining([
       "store_name", "listing_title", "price_pence", "child_sales_30d", "sales_7d_daily_minimum", "sales_7d_state", "sales_7d_days_json", "detail_state", "features_json", "brand", "brand_url",

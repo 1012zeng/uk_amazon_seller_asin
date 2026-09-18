@@ -7,6 +7,7 @@ import { detectSellerWorkbookLayout, readSellerWorkbookRow } from "./seller-work
 export function extractSellerId(profileUrl: string): string | null {
   try {
     const url = new URL(profileUrl);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
     const hostname = url.hostname.toLowerCase();
     if (hostname !== "amazon.co.uk" && !hostname.endsWith(".amazon.co.uk")) return null;
     const sellerId = (url.searchParams.get("seller") ?? url.searchParams.get("me") ?? "").trim().toUpperCase();
@@ -26,9 +27,15 @@ function sellerIdFromCellValue(value: ExcelJS.CellValue): { sellerId: string | n
     const displayName = String(hyperlink.text ?? "").trim();
     return { sellerId: extractSellerId(sourceUrl), displayName, sourceUrl };
   }
-  const text = String(value).trim();
+  if (typeof value !== "string") throw new Error("B 列必须是 Seller ID 或 Amazon UK 卖家链接");
+  const text = value.trim();
   const sellerId = /^[A-Z0-9]{10,20}$/i.test(text) ? text.toUpperCase() : extractSellerId(text);
-  return { sellerId, displayName: text, sourceUrl: sellerId ? text : "" };
+  return { sellerId, displayName: sellerId && !/^https?:\/\//i.test(text) ? sellerId : text, sourceUrl: sellerId && /^https?:\/\//i.test(text) ? text : "" };
+}
+
+function rowIsCompletelyBlank(row: ExcelJS.Row): boolean {
+  const values = Array.isArray(row.values) ? row.values : Object.values(row.values as Record<string, unknown>);
+  return values.every((value: unknown) => value === null || value === undefined || value === "" || (typeof value === "string" && value.trim() === ""));
 }
 
 export async function readSellerIdsColumnB(
@@ -50,7 +57,7 @@ export async function readSellerIdsColumnB(
   for (let row = 2; row <= sheet.actualRowCount; row += 1) {
     sourceRows += 1;
     const cell = sheet.getCell(row, 2);
-    if (cell.value === null || cell.value === undefined || cell.value === "") continue;
+    if (rowIsCompletelyBlank(sheet.getRow(row))) continue;
     try {
       const parsed = sellerIdFromCellValue(cell.value);
       if (!parsed.sellerId) throw new Error(`第 ${row} 行 B 列无法提取合法 Seller ID`);
@@ -70,7 +77,8 @@ export async function readSellerIdsColumnB(
         storeUrl: canonicalStoreUrl(marketplace, marketplaceId, sellerId),
       });
     } catch (error) {
-      errors.push(error instanceof Error ? error.message : String(error));
+      const message = error instanceof Error ? error.message : String(error);
+      errors.push(message.startsWith("第 ") ? message : `第 ${row} 行：${message}`);
     }
   }
   if (errors.length > 0) throw new Error(`源 Excel 校验失败：\n${errors.join("\n")}`);

@@ -42,6 +42,13 @@ function resolveProjectPath(value: string): string {
   return path.isAbsolute(value) ? path.normalize(value) : path.resolve(projectRoot, value);
 }
 
+function isWithinRoot(root: string, target: string): boolean {
+  const relative = path.relative(root, target);
+  return relative === "" || (!relative.startsWith(`..${path.sep}`) && relative !== ".." && !path.isAbsolute(relative));
+}
+
+function isWithinProjectRoot(target: string): boolean { return isWithinRoot(projectRoot, target); }
+
 export function loadConfig(configFile = "config/amazon-uk.yaml"): AppConfig {
   const configPath = resolveProjectPath(configFile);
   const sourceText = readFileSync(configPath, "utf8");
@@ -149,6 +156,11 @@ export function loadConfig(configFile = "config/amazon-uk.yaml"): AppConfig {
   if (config.source.format !== "seller_ids_b") throw new Error("source.format must be seller_ids_b");
   if (config.historyFilter.enabled) throw new Error("historyFilter.enabled must remain false in the independent seller-ID project");
   if (!path.isAbsolute(config.source.path) || !existsSync(config.source.path)) throw new Error(`Source Excel does not exist: ${config.source.path}`);
+  const customConfigRoot = path.dirname(configPath);
+  const isTestOrCustomConfig = !isWithinProjectRoot(configPath);
+  if (!isWithinProjectRoot(config.output.root) && !(isTestOrCustomConfig && isWithinRoot(customConfigRoot, config.output.root))) {
+    throw new Error("output.root must remain inside the independent project root");
+  }
   const concurrency = config.stores.concurrency;
   if (concurrency.min > concurrency.initial || concurrency.initial > concurrency.max || concurrency.max !== 3) throw new Error("stores.concurrency must satisfy min <= initial <= max, with max fixed at 3");
   if (config.stores.proxyPorts.length !== 4) throw new Error("stores.proxyPorts must contain the four ordered failover ports");

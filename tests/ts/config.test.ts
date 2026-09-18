@@ -6,7 +6,7 @@ import { loadConfig } from "../../src/shared/config.js";
 
 describe("independent seller-ID configuration", () => {
   it("pins the B-column source and the new 180-day contract", () => {
-    const config = loadConfig("config/amazon-uk.yaml");
+    const config = loadConfig("config/amazon-uk.example.yaml");
     expect(config.source).toMatchObject({ sheet: "卖家数据", limit: 0, format: "seller_ids_b" });
     expect(config.historyFilter).toEqual({ enabled: false });
     expect(config.filters).toEqual({
@@ -17,7 +17,7 @@ describe("independent seller-ID configuration", () => {
   });
 
   it("rejects history filtering and superseded source formats", () => {
-    const production = readFileSync("config/amazon-uk.yaml", "utf8");
+    const production = readFileSync("config/amazon-uk.example.yaml", "utf8");
     const root = mkdtempSync(path.join(os.tmpdir(), "seller-id-config-"));
     const history = path.join(root, "history.yaml");
     const oldFormat = path.join(root, "old-format.yaml");

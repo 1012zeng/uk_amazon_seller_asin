@@ -3,6 +3,7 @@ import type Database from "better-sqlite3";
 import type { AppConfig, SourceStoreStats, StageName, StageStatus, StoreRuntimeMetrics, StoreSeed } from "../../shared/types.js";
 import { STAGES } from "../../shared/types.js";
 import { SCHEMA_VERSION } from "../run-database.js";
+import { BUSINESS_CONTRACT_VERSION, currentGitCommit, PROJECT_ID, runContractHash } from "../../shared/contracts.js";
 
 function nowIso(): string { return new Date().toISOString(); }
 
@@ -11,11 +12,12 @@ export class SourceRepository {
 
   initialize(runId: string, config: AppConfig, sourceHash: string, seeds: StoreSeed[], stats: SourceStoreStats, startedAt = nowIso()): void {
     const asOfDate = startedAt.slice(0, 10);
-    const contractHash = createHash("sha256").update(JSON.stringify({ schema: SCHEMA_VERSION, configHash: config.configHash, sourceHash, asOfDate })).digest("hex");
+    const contractHash = createHash("sha256").update(runContractHash(SCHEMA_VERSION, config.configHash, sourceHash, asOfDate)).digest("hex");
+    const gitCommit = currentGitCommit(config.projectRoot);
     this.db.transaction(() => {
       if (this.db.prepare("SELECT 1 FROM run_meta").get()) throw new Error("Run database is already initialized");
-      this.db.prepare(`INSERT INTO run_meta(singleton,run_id,status,current_stage,config_path,config_hash,config_json,contract_hash,source_path,source_hash,source_sheet,source_stats_json,run_started_at,as_of_date,created_at,updated_at)
-        VALUES(1,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(runId, "running", "import", config.configPath, config.configHash, JSON.stringify(config), contractHash, config.source.path, sourceHash, config.source.sheet, JSON.stringify(stats), startedAt, asOfDate, startedAt, startedAt);
+      this.db.prepare(`INSERT INTO run_meta(singleton,project_id,business_contract_version,git_commit,run_id,status,current_stage,config_path,config_hash,config_json,contract_hash,source_path,source_hash,source_sheet,source_stats_json,run_started_at,as_of_date,created_at,updated_at)
+        VALUES(1,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(PROJECT_ID, BUSINESS_CONTRACT_VERSION, gitCommit, runId, "running", "import", config.configPath, config.configHash, JSON.stringify(config), contractHash, config.source.path, sourceHash, config.source.sheet, JSON.stringify(stats), startedAt, asOfDate, startedAt, startedAt);
       const stage = this.db.prepare("INSERT INTO run_stages(stage,status,started_at,completed_at,updated_at) VALUES(?,?,?,?,?)");
       for (const name of STAGES) {
         const completed = name === "import" || (name === "source_resolution" && config.source.format !== "asin_links_b");

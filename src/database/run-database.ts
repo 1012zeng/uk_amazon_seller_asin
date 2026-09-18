@@ -41,6 +41,9 @@ export class RunDatabase {
     this.connection.exec(`
       CREATE TABLE run_meta (
         singleton INTEGER PRIMARY KEY CHECK(singleton=1),
+        project_id TEXT NOT NULL,
+        business_contract_version TEXT NOT NULL,
+        git_commit TEXT NOT NULL,
         run_id TEXT NOT NULL UNIQUE,
         status TEXT NOT NULL,
         current_stage TEXT NOT NULL,

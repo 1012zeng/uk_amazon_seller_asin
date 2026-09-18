@@ -7,7 +7,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "start": "node --expose-gc --import tsx src/cli.ts pipeline --config config/amazon-uk.yaml",
+    "start": "node --expose-gc --import tsx src/cli.ts pipeline --config config/amazon-uk.local.yaml",
     "seller-ids": "node --expose-gc --import tsx src/seller-ids-cli.ts",
     "pipeline": "node --expose-gc --import tsx src/cli.ts pipeline",
     "stores": "node --expose-gc --import tsx src/cli.ts stores",
