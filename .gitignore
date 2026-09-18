@@ -1,0 +1,8 @@
+node_modules/
+output/
+coverage/
+*.log
+.gstack/
+config/*.local.yaml
+.env
+.env.*

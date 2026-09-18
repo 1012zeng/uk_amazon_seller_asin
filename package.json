@@ -1,0 +1,42 @@
+{
+  "name": "uk-amazon-seller-asin",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node --expose-gc --import tsx src/cli.ts pipeline --config config/amazon-uk.yaml",
+    "seller-ids": "node --expose-gc --import tsx src/seller-ids-cli.ts",
+    "pipeline": "node --expose-gc --import tsx src/cli.ts pipeline",
+    "stores": "node --expose-gc --import tsx src/cli.ts stores",
+    "source-resolution": "node --expose-gc --import tsx src/cli.ts source-resolution",
+    "prefilter": "node --expose-gc --import tsx src/cli.ts prefilter",
+    "history-filter": "node --expose-gc --import tsx src/cli.ts history-filter",
+    "enrich": "node --expose-gc --import tsx src/cli.ts enrich",
+    "filter": "node --expose-gc --import tsx src/cli.ts filter",
+    "sales-7d": "node --expose-gc --import tsx src/cli.ts sales-7d",
+    "detail": "node --expose-gc --import tsx src/cli.ts detail",
+    "export": "node --expose-gc --import tsx src/cli.ts export",
+    "status": "node --expose-gc --import tsx src/cli.ts status",
+    "proxy:check": "node --import tsx ../../亚马逊爬取V2-TS+PY/seller-sprite-poc/src/proxy-controller-cli.ts check --market uk --config ../../亚马逊爬取V2-TS+PY/seller-sprite-poc/proxy-controller.yaml",
+    "proxy:reconcile": "node --import tsx ../../亚马逊爬取V2-TS+PY/seller-sprite-poc/src/proxy-controller-cli.ts reconcile --market uk --reason manual --if-stale --config ../../亚马逊爬取V2-TS+PY/seller-sprite-poc/proxy-controller.yaml",
+    "check": "tsc --noEmit",
+    "test": "vitest run tests/ts"
+  },
+  "dependencies": {
+    "better-sqlite3": "13.0.2",
+    "exceljs": "4.4.0",
+    "linkedom": "0.18.13",
+    "playwright": "1.62.1",
+    "yaml": "2.9.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "9.6.0",
+    "@types/node": "24.10.0",
+    "tsx": "4.23.1",
+    "typescript": "5.9.3",
+    "vitest": "4.1.10"
+  }
+}

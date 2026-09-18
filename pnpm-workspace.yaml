@@ -1,0 +1,5 @@
+allowBuilds:
+  better-sqlite3: true
+  esbuild: true
+minimumReleaseAgeExclude:
+  - '@types/better-sqlite3@9.6.0'
