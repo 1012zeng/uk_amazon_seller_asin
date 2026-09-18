@@ -1,11 +1,11 @@
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
-import os from "node:os";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { loadConfig } from "../../src/shared/config.js";
+import { loadConfig, projectRoot } from "../../src/shared/config.js";
 
 function fixtureConfig(): { root: string; text: string } {
-  const root = mkdtempSync(path.join(os.tmpdir(), "seller-id-config-"));
+  mkdirSync(path.join(projectRoot, "output", "tests"), { recursive: true });
+  const root = mkdtempSync(path.join(projectRoot, "output", "tests", "seller-id-config-"));
   const source = path.join(root, "source.xlsx");
   writeFileSync(source, "fixture");
   const sourcePath = source.replaceAll("\\", "/");

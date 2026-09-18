@@ -32,9 +32,8 @@ export async function runFilterStage(store: RunStore): Promise<number> {
           continue;
         }
         const age = listingAgeDays(row.available_date, asOfDate)!;
-        const needsSales7d = true;
         store.exports.addFiltered(row, config.amazon.site, new URL(`/dp/${row.asin}`, config.amazon.marketplace).toString());
-        store.candidates.setState(row.asin, needsSales7d ? "sales_pending" : "retained", "", "", age);
+        store.candidates.setState(row.asin, "sales_pending", "", "", age);
       }
     })();
     store.setStage("filter", "completed");

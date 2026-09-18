@@ -1,6 +1,7 @@
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
-import os from "node:os";
+import YAML from "yaml";
+import { projectRoot } from "../../src/shared/config.js";
 import path from "node:path";
 import type { AppConfig, SourceFormat, SourceProductLink, StoreAsinOccurrence, StorePageParseResult, StoreSeed } from "../../src/shared/types.js";
 import { DEFAULT_PAGINATION_POLICY } from "../../src/amazon/pagination-snapshot-guard.js";
@@ -8,14 +9,13 @@ import { RunStore } from "../../src/database/run-store.js";
 
 export function runFixture(options: { sourceFormat?: SourceFormat; products?: SourceProductLink[] } = {}): { store: RunStore; config: AppConfig; root: string } {
   const sourceFormat = options.sourceFormat ?? "seller_ids_b";
-  const root = mkdtempSync(path.join(os.tmpdir(), "run-v9-"));
+  mkdirSync(path.join(projectRoot, "output", "tests"), { recursive: true });
+  const root = mkdtempSync(path.join(projectRoot, "output", "tests", "run-v15-"));
   const source = path.join(root, "source.xlsx");
   const configPath = path.join(root, "config.yaml");
   writeFileSync(source, "fixture");
-  const configText = `source:\n  path: "${source.replace(/\\/g, "/")}"\n  sheet: "产品数据"\n  limit: 0\n  format: "${sourceFormat}"\nhistoryFilter:\n  enabled: ${false}\namazon:\n  marketplace: "https://www.amazon.co.uk"\n  site: "amazon.co.uk"\n  marketplaceId: "A1F83G8C2ARO7P"\n  postcode: "WC1E 7HU"\n  currency: "GBP"\nbrowser:\n  headed: false\n  executablePath: ""\n  controlPath: "/robots.txt"\n  navigationTimeoutMs: 1000\n  requestTimeoutMs: 1000\n  wafWaitSeconds: 0\n  pageRefreshAttempts: 1\n  browserRestartAttempts: 2\n  noResponseTimeoutMs: 2000\n  recoveryDelayMs: 0\nstores:\n  concurrency:\n    initial: 3\n    min: 1\n    max: 3\n    successWindowPages: 10\n    cooldownMs: 60000\n  requestsPerSecond: 2\n  maxResponseBytes: 5242880\n  maxRetries: 2\n  maxBlockedAttempts: 2\n  blockedDelayMs: 0\n  maxPagesPerStore: 0\n  proxyPorts: [1, 2, 3, 4]\nsellerSprite:\n  serviceUrl: "http://127.0.0.1:8012"\n  marketplace: "UK"\n  batchSize: 40\n  requestTimeoutMs: 1000\nfilters:\n  maxReviewCount: 300\n  minRatingInclusive: 3.5\n  minPricePence: 699\n  maxPricePence: 5000\n  maxVariations: 3\n  maxNewAgeDays: 30\n  \n  \n  maxAgeDays: 180\n  \n  \n  \n  newListingDailySalesMinimum: 3\noutput:\n  root: "${root.replace(/\\/g, "/")}"\n`;
-  writeFileSync(configPath, configText);
   const config: AppConfig = {
-    projectRoot: root, configPath, configHash: createHash("sha256").update(configText).digest("hex"), source: { path: source, sheet: "产品数据", limit: 0, format: sourceFormat },
+    projectRoot: root, configPath, configHash: "", source: { path: source, sheet: "产品数据", limit: 0, format: sourceFormat },
     historyFilter: { enabled: false },
     amazon: { marketplace: "https://www.amazon.co.uk", site: "amazon.co.uk", marketplaceId: "A1F83G8C2ARO7P", postcode: "WC1E 7HU", currency: "GBP" },
     browser: { headed: false, executablePath: "", controlPath: "/robots.txt", navigationTimeoutMs: 1000, requestTimeoutMs: 1000, wafWaitSeconds: 0, pageRefreshAttempts: 1, browserRestartAttempts: 2, noResponseTimeoutMs: 2000, recoveryDelayMs: 0 },
@@ -26,6 +26,9 @@ export function runFixture(options: { sourceFormat?: SourceFormat; products?: So
       maxNewAgeDays: 30, maxAgeDays: 180, newListingDailySalesMinimum: 3,
     }, output: { root },
   };
+  const configText = YAML.stringify(config);
+  config.configHash = createHash("sha256").update(configText).digest("hex");
+  writeFileSync(configPath, configText);
   const store = new RunStore(path.join(root, "run"));
   const seeds: StoreSeed[] = [{ sellerId: "A123456789", sourceRow: 2, sourceName: "First", sourceProfileUrl: "https://amazon.co.uk/sp?seller=A123456789", storeUrl: "https://www.amazon.co.uk/s?i=merchant-items&me=A123456789&marketplaceID=A1F83G8C2ARO7P" }, { sellerId: "B123456789", sourceRow: 3, sourceName: "Second", sourceProfileUrl: "https://amazon.co.uk/sp?seller=B123456789", storeUrl: "https://www.amazon.co.uk/s?i=merchant-items&me=B123456789&marketplaceID=A1F83G8C2ARO7P" }];
   const sourceHash = createHash("sha256").update("fixture").digest("hex");

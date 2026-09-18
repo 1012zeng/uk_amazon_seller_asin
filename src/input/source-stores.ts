@@ -30,7 +30,7 @@ function sellerIdFromCellValue(value: ExcelJS.CellValue): { sellerId: string | n
   if (typeof value !== "string") throw new Error("B 列必须是 Seller ID 或 Amazon UK 卖家链接");
   const text = value.trim();
   const sellerId = /^[A-Z0-9]{10,20}$/i.test(text) ? text.toUpperCase() : extractSellerId(text);
-  return { sellerId, displayName: sellerId && !/^https?:\/\//i.test(text) ? sellerId : text, sourceUrl: sellerId && /^https?:\/\//i.test(text) ? text : "" };
+  return { sellerId, displayName: sellerId ?? "", sourceUrl: sellerId && /^https?:\/\//i.test(text) ? text : "" };
 }
 
 function rowIsCompletelyBlank(row: ExcelJS.Row): boolean {
@@ -54,7 +54,7 @@ export async function readSellerIdsColumnB(
   const errors: string[] = [];
   let sourceRows = 0;
   let duplicateSellerIds = 0;
-  for (let row = 2; row <= sheet.actualRowCount; row += 1) {
+  for (let row = 2; row <= sheet.rowCount; row += 1) {
     sourceRows += 1;
     const cell = sheet.getCell(row, 2);
     if (rowIsCompletelyBlank(sheet.getRow(row))) continue;

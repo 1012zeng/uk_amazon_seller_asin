@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- 将 better-sqlite3 安装改为使用其 N-API 预构建包，避免无必要的本机 C++ 编译；测试 fixture 统一写入被忽略的项目 output 目录。
+- 强制默认配置使用被忽略的 `config/amazon-uk.local.yaml`，输出根目录必须位于独立项目内；导出拒绝缺少 `yes` 七天销量结论的保留行。
 - 修正 B 列输入对空行、非空无效行、HTTP(S) 协议和纯 ID 名称的处理。
 - 为 v15 run 元数据增加项目标识、业务合同版本和创建时 Git 提交审计。
 - 将正式配置改为 `*.example.yaml` 模板，本机配置使用被忽略的 `*.local.yaml`；补充输出和运行产物忽略规则。

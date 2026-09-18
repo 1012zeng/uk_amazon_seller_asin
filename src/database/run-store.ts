@@ -41,7 +41,12 @@ export class RunStore {
     this.enrichments = new EnrichmentRepository(this.db);
     this.exports = new ExportRepository(this.db);
     this.sales = new SalesRepository(this.db, this.exports);
-    if (!options.readonly && this.db.prepare("SELECT 1 FROM run_meta LIMIT 1").get()) this.assertResumeContract();
+    try {
+      if (!options.readonly && this.db.prepare("SELECT 1 FROM run_meta LIMIT 1").get()) this.assertResumeContract();
+    } catch (error) {
+      this.close();
+      throw error;
+    }
   }
 
   initialize(runId: string, config: AppConfig, sourceHash: string, seeds: StoreSeed[], stats: SourceStoreStats, startedAt?: string, products: SourceProductLink[] = []): void {

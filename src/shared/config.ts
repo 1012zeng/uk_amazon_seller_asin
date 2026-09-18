@@ -49,7 +49,7 @@ function isWithinRoot(root: string, target: string): boolean {
 
 function isWithinProjectRoot(target: string): boolean { return isWithinRoot(projectRoot, target); }
 
-export function loadConfig(configFile = "config/amazon-uk.yaml"): AppConfig {
+export function loadConfig(configFile = "config/amazon-uk.local.yaml"): AppConfig {
   const configPath = resolveProjectPath(configFile);
   const sourceText = readFileSync(configPath, "utf8");
   const raw = object(YAML.parse(sourceText), "root");
@@ -129,7 +129,7 @@ export function loadConfig(configFile = "config/amazon-uk.yaml"): AppConfig {
         fallbackMaxPages: integer(paginationValidation.fallbackMaxPages, "stores.paginationValidation.fallbackMaxPages", 1),
       },
       proxyPorts: ports(stores.proxyPorts, "stores.proxyPorts"),
-      proxyControllerPath: resolveProjectPath(string(stores.proxyControllerPath ?? projectRoot, "stores.proxyControllerPath")),
+      proxyControllerPath: resolveProjectPath(string(stores.proxyControllerPath, "stores.proxyControllerPath")),
     },
     sellerSprite: {
       serviceUrl: string(sellerSprite.serviceUrl, "sellerSprite.serviceUrl").replace(/\/$/, ""),
@@ -156,9 +156,7 @@ export function loadConfig(configFile = "config/amazon-uk.yaml"): AppConfig {
   if (config.source.format !== "seller_ids_b") throw new Error("source.format must be seller_ids_b");
   if (config.historyFilter.enabled) throw new Error("historyFilter.enabled must remain false in the independent seller-ID project");
   if (!path.isAbsolute(config.source.path) || !existsSync(config.source.path)) throw new Error(`Source Excel does not exist: ${config.source.path}`);
-  const customConfigRoot = path.dirname(configPath);
-  const isTestOrCustomConfig = !isWithinProjectRoot(configPath);
-  if (!isWithinProjectRoot(config.output.root) && !(isTestOrCustomConfig && isWithinRoot(customConfigRoot, config.output.root))) {
+  if (!isWithinProjectRoot(config.output.root)) {
     throw new Error("output.root must remain inside the independent project root");
   }
   const concurrency = config.stores.concurrency;

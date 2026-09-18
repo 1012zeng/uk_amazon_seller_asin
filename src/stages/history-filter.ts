@@ -3,7 +3,6 @@ import { appendEvent, truncateError, writeSummary } from "../shared/utils.js";
 
 export async function runHistoryFilterStage(
   store: RunStore,
-  _client?: unknown,
 ): Promise<number> {
   try {
     if (store.source.stageStatus("prefilter") !== "completed") throw new Error("History filter requires completed prefilter stage");
