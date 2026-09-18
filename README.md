@@ -1,2 +1,3 @@
-# uk_amazon_seller_asin
-英国站亚马逊通过店铺获取ASIN
+# v14 legacy source baseline (sanitized)
+
+This branch/tag records the source implementation before the independent Seller ID contract. Source Excel, runtime databases, browser state, logs, and credentials were omitted. The source path in the config is a placeholder.
